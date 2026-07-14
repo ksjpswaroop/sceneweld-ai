@@ -9,6 +9,8 @@
 
 SceneWeld was rejected during Phase 0 after registry evidence showed `sceneweld.com` was registered on 2026-04-07. The codebase was intentionally not renamed.
 
+On 2026-07-14, the maintainer explicitly requested publication of the source repository at `ksjpswaroop/sceneweld-ai`. That repository handle is recorded as a maintainer-directed distribution name; it does not reverse the product-name rejection, establish trademark clearance, or authorize renaming application identifiers.
+
 SceneMeld was selected as the replacement working candidate. The name preserves the intended meaning—bringing shots, sound, text, and ideas together—without the unavailable domain.
 
 ## Recorded initial screen

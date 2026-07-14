@@ -65,7 +65,8 @@ jobs:
         with:
           name: moon-report-${{ matrix.os }}
           path: .moon/cache/ciReport.json
-          if-no-files-found: warn
+          if-no-files-found: error
+          include-hidden-files: true
 
   package-desktop:
     name: Package desktop (macOS Apple Silicon)
