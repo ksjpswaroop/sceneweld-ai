@@ -10,7 +10,7 @@ tasks:
       runInCI: false
 
   check:
-    command: 'cargo check'
+    command: 'cargo check --locked'
     inputs:
       - 'src/**/*'
       - 'Cargo.toml'
@@ -18,11 +18,35 @@ tasks:
       - '/Cargo.lock'
 
   build:
-    command: 'cargo build --release'
+    command: 'cargo build --release --locked'
     inputs:
       - 'src/**/*'
       - 'Cargo.toml'
       - '/Cargo.toml'
       - '/Cargo.lock'
     outputs:
-      - '/target/release/opencut-desktop'
+      - '/target/release/opencut-desktop*'
+
+  format:
+    command: 'cargo fmt --all -- --check'
+    inputs:
+      - 'src/**/*'
+      - 'Cargo.toml'
+      - '/Cargo.toml'
+      - '/Cargo.lock'
+
+  lint:
+    command: 'cargo clippy --workspace --all-targets --locked -- -D warnings'
+    inputs:
+      - 'src/**/*'
+      - 'Cargo.toml'
+      - '/Cargo.toml'
+      - '/Cargo.lock'
+
+  test:
+    command: 'cargo test --workspace --locked'
+    inputs:
+      - 'src/**/*'
+      - 'Cargo.toml'
+      - '/Cargo.toml'
+      - '/Cargo.lock'

@@ -1,24 +1,61 @@
-$schema: 'https://moonrepo.dev/schemas/project.json'
+$schema: "https://moonrepo.dev/schemas/project.json"
 
-language: 'typescript'
-layer: 'application'
+language: "typescript"
+layer: "application"
 
 tasks:
   dev:
-    command: 'bun run dev'
+    command: "bun run dev"
     options:
-      runInCI: false  # dev server: skipped in CI, never cached
+      runInCI: false # dev server: skipped in CI, never cached
 
   build:
-    command: 'bun run build'
+    command: "bun run build"
     inputs:
-      - 'src/**/*'
-      - 'wrangler.jsonc'
-      - 'package.json'
+      - "src/**/*"
+      - "wrangler.jsonc"
+      - "tsconfig.json"
+      - "package.json"
+      - "bun.lock"
     outputs:
-      - 'dist'
+      - "dist"
+
+  format:
+    command: "bun run format"
+    inputs:
+      - "src/**/*"
+      - ".prettierignore"
+      - "*.json"
+      - "*.jsonc"
+      - "package.json"
+      - "bun.lock"
+
+  lint:
+    command: "bun run lint"
+    inputs:
+      - "src/**/*"
+      - "package.json"
+      - "bun.lock"
+
+  typecheck:
+    command: "bun run typecheck"
+    inputs:
+      - "src/**/*"
+      - "tsconfig.json"
+      - "package.json"
+      - "bun.lock"
+
+  test:
+    command: "bun run test"
+    inputs:
+      - "src/**/*"
+      - "tsconfig.json"
+      - "package.json"
+      - "bun.lock"
 
   deploy:
-    command: 'bun run deploy'
+    command: "bun run deploy"
     deps:
-      - '~:build'
+      - "~:build"
+    options:
+      runInCI: false

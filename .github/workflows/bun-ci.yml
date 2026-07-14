@@ -1,12 +1,15 @@
-name: Bun CI
+name: CI
+
+permissions:
+  contents: read
 
 concurrency:
   group: bun-ci-${{ github.ref }}
   cancel-in-progress: true
 
 on:
+  workflow_dispatch:
   push:
-    branches: [main]
     paths-ignore:
       - "*.md"
   pull_request:
@@ -16,22 +19,86 @@ on:
 
 jobs:
   ci:
+    name: Verify (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-24.04, windows-2025, macos-15]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
       - name: Setup toolchain
-        uses: moonrepo/setup-toolchain@v0
+        uses: moonrepo/setup-toolchain@261c62cb5b0f580c7be7c8cd0f023a2e96756095 # v0.6.4
         with:
           auto-install: true
           auto-setup: true
 
+      - name: Install GPUI Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang cmake g++ gcc libasound2-dev \
+            libfontconfig-dev libglib2.0-dev libssl-dev libva-dev \
+            libvulkan1 libwayland-dev libx11-xcb-dev \
+            libxkbcommon-x11-dev libzstd-dev lld llvm make \
+            musl-dev musl-tools pkg-config
+
       - name: Run CI
         run: moon ci
+
+      - name: Upload Moon report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: moon-report-${{ matrix.os }}
+          path: .moon/cache/ciReport.json
+          if-no-files-found: warn
+
+  package-desktop:
+    name: Package desktop (macOS Apple Silicon)
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup toolchain
+        uses: moonrepo/setup-toolchain@261c62cb5b0f580c7be7c8cd0f023a2e96756095 # v0.6.4
+        with:
+          auto-install: true
+          auto-setup: true
+
+      - name: Build locked release binary
+        run: cargo build --release --locked --package opencut-desktop
+
+      - name: Verify Apple Silicon binary
+        run: |
+          test "$(uname -m)" = "arm64"
+          file target/release/opencut-desktop | grep -q "arm64"
+
+      - name: Package deterministic archive
+        run: >-
+          python3 scripts/package_desktop.py
+          --binary target/release/opencut-desktop
+          --output dist/opencut-desktop-macos-arm64.zip
+
+      - name: Rebuild package and verify deterministic archive
+        run: |
+          cp dist/opencut-desktop-macos-arm64.zip /tmp/opencut-desktop-first.zip
+          python3 scripts/package_desktop.py --binary target/release/opencut-desktop --output dist/opencut-desktop-macos-arm64.zip
+          cmp /tmp/opencut-desktop-first.zip dist/opencut-desktop-macos-arm64.zip
+
+      - name: Upload desktop artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: opencut-desktop-macos-arm64
+          path: |
+            dist/opencut-desktop-macos-arm64.zip
+            dist/opencut-desktop-macos-arm64.zip.sha256
+          if-no-files-found: error
+          compression-level: 0

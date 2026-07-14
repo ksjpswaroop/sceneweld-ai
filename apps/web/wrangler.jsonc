@@ -7,7 +7,7 @@
   "routes": [
     {
       "pattern": "new.opencut.app",
-      "custom_domain": true
-    }
-  ]
+      "custom_domain": true,
+    },
+  ],
 }

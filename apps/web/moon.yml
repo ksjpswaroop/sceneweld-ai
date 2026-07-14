@@ -1,32 +1,67 @@
-$schema: 'https://moonrepo.dev/schemas/project.json'
+$schema: "https://moonrepo.dev/schemas/project.json"
 
-language: 'typescript'
-layer: 'application'
+language: "typescript"
+layer: "application"
 
 tasks:
   dev:
-    command: 'bun run dev'
+    command: "bun run dev"
     options:
-      runInCI: false  # dev server: skipped in CI, never cached
+      runInCI: false # dev server: skipped in CI, never cached
 
   build:
-    command: 'bun run build'
+    command: "bun run build"
     inputs:
-      - 'src/**/*'
-      - 'public/**/*'
-      - 'vite.config.ts'
-      - 'tsconfig.json'
-      - 'package.json'
+      - "src/**/*"
+      - "public/**/*"
+      - "vite.config.ts"
+      - "tsconfig.json"
+      - "package.json"
+      - "bun.lock"
     outputs:
-      - 'dist'
+      - "dist"
+
+  format:
+    command: "bun run format"
+    inputs:
+      - "src/**/*"
+      - ".prettierignore"
+      - "*.ts"
+      - "*.json"
+      - "package.json"
+      - "bun.lock"
+
+  lint:
+    command: "bun run lint"
+    inputs:
+      - "src/**/*"
+      - "vite.config.ts"
+      - "vitest.config.ts"
+      - "package.json"
+      - "bun.lock"
+
+  typecheck:
+    command: "bun run typecheck"
+    inputs:
+      - "src/**/*"
+      - "vite.config.ts"
+      - "vitest.config.ts"
+      - "tsconfig.json"
+      - "package.json"
+      - "bun.lock"
 
   test:
-    command: 'bun run test'
+    command: "bun run test"
     inputs:
-      - 'src/**/*'
-      - 'tsconfig.json'
+      - "src/**/*"
+      - "tsconfig.json"
+      - "vitest.config.ts"
+      - "package.json"
+      - "bun.lock"
 
   deploy:
-    command: 'bun run deploy'
+    command: "bun run deploy"
     deps:
-      - '~:build'
+      - "~:build"
+    options:
+      runInCI: false

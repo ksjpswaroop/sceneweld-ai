@@ -5,6 +5,20 @@ target/
 .env.*
 !.env.example
 docs/
+!docs/
+docs/*
+!docs/ENHANCEMENT_AND_AI_ARCHITECTURE.md
+!docs/PHASE_0_STATUS.md
+!docs/audit-assets/
+docs/audit-assets/*
+!docs/audit-assets/desktop-shell.png
+!docs/audit-assets/web-home.png
+!docs/decisions/
+docs/decisions/*
+!docs/decisions/0001-shared-rust-core-and-web-wasm-boundary.md
+!docs/brand/
+docs/brand/*
+!docs/brand/NAME_CLEARANCE.md
 
 # moon runtime cache
 .moon/cache/

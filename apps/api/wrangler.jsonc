@@ -3,5 +3,5 @@
   "name": "opencut-api",
   "main": "src/index.ts",
   // Minimum date required for CloudflareAdapter AoT support
-  "compatibility_date": "2025-06-01"
+  "compatibility_date": "2025-06-01",
 }
