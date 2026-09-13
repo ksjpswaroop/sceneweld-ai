@@ -43,7 +43,7 @@ The first workflow supports sequential cuts, one soundtrack, up to 100 clips / t
 
 Data lives in `~/.scenemeld-studio`; override `SCENEMELD_DATA_DIR` to use another directory. Projects, media and exports remain local. Back up the entire directory with the server stopped; a Director JSON export preserves planning data but does not contain timeline edits or video/audio files.
 
-State writes validate the document and use an atomic temporary-file replacement. Conflicting saves return an error rather than overwriting a newer edit. Reload the project before retrying a conflict. There is no silent state migration or corrupt-file reset.
+State writes validate the document and use an atomic temporary-file replacement. Conflicting saves return an error rather than overwriting a newer edit. Use Discard my edits and reload to keep the newer saved version after a conflict, then reapply any intended edits. There is no silent state migration or corrupt-file reset.
 
 One server owns a data directory at a time. A normal shutdown releases `server.lock`. After an uncatchable crash, verify the PID in that file no longer belongs to a running Studio process before removing the lock. Never remove a live server's lock.
 
@@ -69,3 +69,7 @@ Director 0.2.0 is vendored as an installable package in `vendor/`, built from ks
 - https://developers.openai.com/api/docs/deprecations
 
 OpenAI Sora/Videos API is scheduled to shut down September 24, 2026. Studio uses OpenAI for planning and a separate provider for video generation.
+
+## Portable package
+
+The release tarball includes the built browser UI, server, Director package and license. Extract it, enter its `package` directory, run `npm install --omit=dev`, then `npm start`. Node and FFmpeg are prerequisites. Source checkouts use the build instructions above. The package is not published to the npm registry.

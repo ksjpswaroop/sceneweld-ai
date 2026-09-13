@@ -18,7 +18,7 @@ test(
     let server;
     const start = async () => {
       server = spawn(process.execPath, ["server/index.mjs"], {
-        cwd: new URL("..", import.meta.url),
+        cwd: process.env.STUDIO_TEST_DIR ?? new URL("..", import.meta.url),
         env: {
           ...process.env,
           PORT: "4318",

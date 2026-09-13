@@ -11,7 +11,10 @@ async function api(url, method = "GET", body) {
       : {}),
   });
   const value = await r.json();
-  if (!r.ok) throw new Error(value.error ?? "Request failed");
+  if (!r.ok)
+    throw Object.assign(new Error(value.error ?? "Request failed"), {
+      status: r.status,
+    });
   return value;
 }
 const duration = (p) => p?.clips.reduce((s, c) => s + c.out - c.in, 0) ?? 0;
@@ -24,6 +27,7 @@ function App() {
     [data, setData] = useState(null),
     [config, setConfig] = useState({}),
     [error, setError] = useState(""),
+    [conflict, setConflict] = useState(false),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(""),
     [newOpen, setNewOpen] = useState(false),
@@ -122,12 +126,14 @@ function App() {
   }, [playing, asset?.id]);
   async function work(label, fn) {
     setBusy(label);
+    setConflict(false);
     setError("");
     setNotice("");
     try {
       return await fn();
     } catch (e) {
       setError(e.message);
+      setConflict(e.status === 409);
     } finally {
       setBusy("");
     }
@@ -330,6 +336,17 @@ function App() {
           role={error ? "alert" : "status"}
         >
           {error || busy || notice}
+          {conflict && (
+            <button
+              onClick={() =>
+                work("Reloading saved project", async () =>
+                  load(await api("/projects/" + p.id)),
+                )
+              }
+            >
+              Discard my edits and reload
+            </button>
+          )}
           <button
             aria-label="Dismiss message"
             onClick={() => {

@@ -15,16 +15,20 @@ Status: implementation in progress, not yet production released.
 - Runway adapter and job tests cover request shape, safe errors, transient retrieval failure, shot linkage and duplicate completion. These use simulated provider responses.
 
 - A clean install from the committed source archive built and passed all seven tests.
-- Studio CI passed Node 22 and 24 across Linux, macOS and Windows at commit 7e95c156. The next UI-confirmation change must receive its own final CI result.
+- The portable tarball installed without development dependencies and passed the real HTTP import/edit/export/restart test against its own server.
+- The tarball and nested Director archive passed a scan for private state files and the configured credential values.
+- Studio CI passed Node 22 and 24 across Linux, macOS and Windows at commit 7e95c156. Final packaging and conflict-recovery changes receive their own CI runs.
 - A narrow viewport check found no horizontal page overflow. The new-project dialog closes with Escape.
-- An isolated recovery test exposed a native browser-confirmation automation failure. The recovery confirmation now uses an in-app checkbox; this revised control still needs a real UI retest.
+- The revised in-app recovery checkbox passed in an isolated browser fixture: the simulated uncertain submission changed to failed without a provider request.
+- Invalid trim ranges were rejected through the UI; Undo restored the valid edit and saving succeeded.
+- Two real browser windows verified stale-save rejection and explicit reload recovery, preserving the newer saved edit.
 
 ## Remaining required gates
 
 - Configure a live video-provider account and generate several actual shots from the UI. Confirm the resulting clips attach correctly, survive restart, can be edited with audio, and render into a downloadable final MP4.
-- Verify provider failure/recovery and ambiguous-submission recovery controls in the UI.
+- Verify reconnection to an actual existing provider task once video credentials are available. The simulated ambiguous-submission UI recovery has passed.
 - Run the final source commit's platform CI, clean installation and credential/package audit.
-- Complete the final UI pass for validation, conflicting edits, responsive layout and keyboard accessibility.
-- Push the final code and prepare the full-package release artifact with accurate supported-platform instructions.
+- Repeat the final plan-to-generated-video UI workflow against the release package with live provider credentials. Validation, conflicting edits, narrow layout and modal keyboard checks have passed.
+- Push final live-generation fixes, rerun the required checks and publish the verified full-package artifact. A portable candidate and installation instructions are prepared.
 
 No ready-for-production claim should be made from the synthetic-media or simulated-provider tests alone.
