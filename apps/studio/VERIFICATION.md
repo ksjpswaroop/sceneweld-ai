@@ -14,6 +14,11 @@ Status: implementation in progress, not yet production released.
 - Automated real HTTP and FFmpeg tests cover media range requests, stale-save rejection, export decoding, duration, first-frame order, persistence and server restart.
 - Runway adapter and job tests cover request shape, safe errors, transient retrieval failure, shot linkage and duplicate completion. These use simulated provider responses.
 
+- A clean install from the committed source archive built and passed all seven tests.
+- Studio CI passed Node 22 and 24 across Linux, macOS and Windows at commit 7e95c156. The next UI-confirmation change must receive its own final CI result.
+- A narrow viewport check found no horizontal page overflow. The new-project dialog closes with Escape.
+- An isolated recovery test exposed a native browser-confirmation automation failure. The recovery confirmation now uses an in-app checkbox; this revised control still needs a real UI retest.
+
 ## Remaining required gates
 
 - Configure a live video-provider account and generate several actual shots from the UI. Confirm the resulting clips attach correctly, survive restart, can be edited with audio, and render into a downloadable final MP4.

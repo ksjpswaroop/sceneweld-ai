@@ -4,6 +4,8 @@ import { spawn } from "node:child_process";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Store, id } from "../server/store.mjs";
+import { createPlan } from "../server/director.mjs";
 import { run, probe } from "../server/media.mjs";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 test(
@@ -54,7 +56,40 @@ test(
       return { status: r.status, data: await r.json() };
     };
     try {
+      const fixture = await new Store(root).open();
+      const recoveryProject = await createPlan({
+        name: "Recovery fixture",
+        intent: "A test",
+        duration: 10,
+        provider: "local-mock",
+      });
+      const jobId = id();
+      await fixture.change((s) => {
+        s.projects.push(recoveryProject);
+        s.jobs.push({
+          id: jobId,
+          projectId: recoveryProject.id,
+          shotId: recoveryProject.shots[0].id,
+          type: "video",
+          status: "uncertain",
+          createdAt: new Date().toISOString(),
+        });
+      });
+      await fixture.close();
       await start();
+      assert.equal(
+        (
+          await call("/jobs/" + jobId + "/reconcile", "POST", {
+            confirmedNotSubmitted: false,
+          })
+        ).status,
+        400,
+      );
+      const recovered = await call("/jobs/" + jobId + "/reconcile", "POST", {
+        confirmedNotSubmitted: true,
+      });
+      assert.equal(recovered.status, 200);
+      assert.equal(recovered.data.jobs[0].status, "failed");
       assert.equal(
         (
           await fetch(origin + "/api/projects", {

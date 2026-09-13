@@ -143,7 +143,10 @@ function App() {
     setActiveShot(null);
   }
   async function open(id) {
-    if (dirty && !confirm("Discard unsaved timeline changes?")) return;
+    if (dirty) {
+      setError("Save your changes before opening another project.");
+      return;
+    }
     await work("Opening project", async () =>
       load(await api("/projects/" + id)),
     );
@@ -821,27 +824,27 @@ function App() {
                             Reconnect generation
                           </button>
                         </form>
-                        <button
-                          className="full danger"
-                          disabled={!!busy}
-                          onClick={() => {
-                            if (
-                              confirm(
-                                "Have you verified in Runway that this request created no generation task? Only confirm after checking to avoid a duplicate charge.",
-                              )
-                            )
-                              work("Updating job status", async () => {
-                                const next = await api(
-                                  "/jobs/" + j.id + "/reconcile",
-                                  "POST",
-                                  { confirmedNotSubmitted: true },
-                                );
-                                setData((d) => ({ ...d, jobs: next.jobs }));
-                              });
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            work("Updating job status", async () => {
+                              const next = await api(
+                                "/jobs/" + j.id + "/reconcile",
+                                "POST",
+                                { confirmedNotSubmitted: true },
+                              );
+                              setData((d) => ({ ...d, jobs: next.jobs }));
+                            });
                           }}
                         >
-                          I verified no task was created
-                        </button>
+                          <label className="confirmation">
+                            <input type="checkbox" required />I checked Runway
+                            and no task was created
+                          </label>
+                          <button className="full danger" disabled={!!busy}>
+                            Mark request as not submitted
+                          </button>
+                        </form>
                       </>
                     )}
                   </div>
