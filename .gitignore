@@ -22,3 +22,8 @@ docs/brand/*
 
 # moon runtime cache
 .moon/cache/
+
+# SceneMeld Studio local media and temporary renders
+.scenemeld-studio/
+apps/studio/data/
+*.tmp
