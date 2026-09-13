@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Store, id, validateEdit } from "./store.mjs";
 import { probe, normalizeUpload, renderTimeline, run } from "./media.mjs";
 import { createPlan, fromDirector } from "./director.mjs";
-import { submitVideo } from "./video.mjs";
+import { submitVideo, pollVideo } from "./video.mjs";
 import { advanceVideoJob } from "./jobs.mjs";
 
 const base = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -139,6 +139,10 @@ app.post(
         return res.status(429).json({
           error: "Another file is being imported. Wait for it to finish.",
         });
+      processingUpload = true;
+      res.once("close", () => {
+        processingUpload = false;
+      });
       next();
     } catch (e) {
       next(e);
@@ -286,6 +290,45 @@ app.post("/api/projects/:id/generate", async (req, res) => {
   }
   res.status(202).json(view(req.params.id));
 });
+app.post("/api/jobs/:id/reconcile", async (req, res) => {
+  const input = z
+    .union([
+      z.object({ remoteId: z.string().uuid() }).strict(),
+      z.object({ confirmedNotSubmitted: z.literal(true) }).strict(),
+    ])
+    .parse(req.body);
+  const existing = store
+    .read()
+    .jobs.find(
+      (j) =>
+        j.id === req.params.id &&
+        j.type === "video" &&
+        j.status === "uncertain",
+    );
+  if (!existing)
+    throw new Error("Only an uncertain video submission can be reconciled.");
+  if ("remoteId" in input) await pollVideo(input.remoteId);
+  await store.change((s) => {
+    const job = s.jobs.find((j) => j.id === existing.id);
+    if (job.status !== "uncertain")
+      throw new Error("Job status changed. Reload before continuing.");
+    if ("remoteId" in input) {
+      if (s.jobs.some((j) => j.id !== job.id && j.remoteId === input.remoteId))
+        throw new Error("That provider job is already linked.");
+      Object.assign(job, {
+        remoteId: input.remoteId,
+        status: "running",
+        error: null,
+      });
+    } else
+      Object.assign(job, {
+        status: "failed",
+        error:
+          "You confirmed that no provider job was created. Select the shot to start a new generation.",
+      });
+  });
+  res.json(view(existing.projectId));
+});
 let renderQueue = Promise.resolve();
 app.post("/api/projects/:id/export", async (req, res) => {
   const revision = z
@@ -412,5 +455,13 @@ async function stop() {
   await store.close();
   process.exit(0);
 }
+server.on("error", async () => {
+  clearInterval(timer);
+  await store.close();
+  console.error(
+    "Studio could not start: the local port may already be in use.",
+  );
+  process.exit(1);
+});
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);

@@ -778,6 +778,64 @@ function App() {
                   <div className="job" key={j.id}>
                     <strong>Video generation · {j.status}</strong>
                     {j.error && <p>{j.error}</p>}
+                    {j.remoteId && <p>Provider task: {j.remoteId}</p>}
+                    {j.status === "uncertain" && (
+                      <>
+                        <p>
+                          Check your Runway account. Reconnect the existing task
+                          to continue without paying for another generation.
+                        </p>
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            const remoteId = new FormData(e.currentTarget).get(
+                              "remoteId",
+                            );
+                            work("Reconnecting generation", async () => {
+                              const next = await api(
+                                "/jobs/" + j.id + "/reconcile",
+                                "POST",
+                                { remoteId },
+                              );
+                              setData((d) => ({ ...d, jobs: next.jobs }));
+                            });
+                          }}
+                        >
+                          <label>
+                            Provider task ID
+                            <input
+                              name="remoteId"
+                              required
+                              placeholder="Task ID from Runway"
+                            />
+                          </label>
+                          <button className="full" disabled={!!busy}>
+                            Reconnect generation
+                          </button>
+                        </form>
+                        <button
+                          className="full danger"
+                          disabled={!!busy}
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Have you verified in Runway that this request created no generation task? Only confirm after checking to avoid a duplicate charge.",
+                              )
+                            )
+                              work("Updating job status", async () => {
+                                const next = await api(
+                                  "/jobs/" + j.id + "/reconcile",
+                                  "POST",
+                                  { confirmedNotSubmitted: true },
+                                );
+                                setData((d) => ({ ...d, jobs: next.jobs }));
+                              });
+                          }}
+                        >
+                          I verified no task was created
+                        </button>
+                      </>
+                    )}
                   </div>
                 ))}
               <details>

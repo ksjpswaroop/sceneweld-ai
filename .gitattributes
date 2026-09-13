@@ -1,0 +1,3 @@
+apps/studio/** text=auto eol=lf
+apps/studio/vendor/*.tgz binary
+.github/workflows/studio-ci.yml text eol=lf

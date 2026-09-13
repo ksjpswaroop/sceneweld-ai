@@ -179,3 +179,30 @@ test("exports trimmed reordered video with soundtrack to a playable MP4", async 
     await fs.rm(root, { recursive: true, force: true });
   }
 });
+
+test("corrupt state is preserved and an invalid transaction cannot replace saved data", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "studio-corruption-"));
+  let s;
+  try {
+    s = await new Store(root).open();
+    const before = await fs.readFile(s.file, "utf8");
+    await assert.rejects(
+      s.change((d) => {
+        d.version = 99;
+      }),
+    );
+    assert.equal(await fs.readFile(s.file, "utf8"), before);
+    await s.close();
+    s = null;
+    await fs.writeFile(path.join(root, "state.json"), "{broken");
+    await assert.rejects(new Store(root).open());
+    assert.equal(
+      await fs.readFile(path.join(root, "state.json"), "utf8"),
+      "{broken",
+    );
+    await assert.rejects(fs.access(path.join(root, "server.lock")));
+  } finally {
+    await s?.close();
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});

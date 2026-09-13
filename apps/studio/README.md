@@ -47,7 +47,7 @@ State writes validate the document and use an atomic temporary-file replacement.
 
 One server owns a data directory at a time. A normal shutdown releases `server.lock`. After an uncatchable crash, verify the PID in that file no longer belongs to a running Studio process before removing the lock. Never remove a live server's lock.
 
-Interrupted exports are marked failed after restart; run Export again from the saved timeline. Submitted video jobs with a saved provider ID resume polling after restart without submitting another paid generation. Ambiguous interrupted submissions are marked uncertain and are not retried automatically. Check the Runway account before generating again. Provider output is downloaded locally; signed provider URLs are not exposed in the UI or saved in the project.
+Interrupted exports are marked failed after restart; run Export again from the saved timeline. Submitted video jobs with a saved provider ID resume polling after restart without submitting another paid generation. Ambiguous interrupted submissions are marked uncertain and are not retried automatically. Check the Runway account before generating again. For an uncertain job, use Reconnect generation with the provider task ID, or explicitly confirm that no task was created. Reconnecting only retrieves the existing task; it does not submit a new paid request. Provider output is downloaded locally; signed provider URLs are not exposed in the UI or saved in the project.
 
 ## Development and tests
 
