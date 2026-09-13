@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 :root {
   font-family: Inter, system-ui, sans-serif;
   color: #f7f8fa;
@@ -662,4 +661,12 @@ details a {
   .preview-label {
     display: none;
   }
+}
+
+.modal::backdrop {
+  background: #000b;
+  backdrop-filter: blur(7px);
+}
+.modal-error {
+  color: #ffb5a8 !important;
 }

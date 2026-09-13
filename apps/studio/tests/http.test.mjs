@@ -8,6 +8,7 @@ import { run, probe } from "../server/media.mjs";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 test(
   "real HTTP workflow: import, range preview, edit conflict, render download and restart",
+  { timeout: 30000 },
   async () => {
     const temp = await fs.mkdtemp(path.join(os.tmpdir(), "studio-http-")),
       root = path.join(temp, ".studio-data");
@@ -23,7 +24,7 @@ test(
           OPENAI_API_KEY: "",
           RUNWAYML_API_SECRET: "",
         },
-        stdio: ["ignore", "pipe", "pipe"],
+        stdio: ["ignore", "pipe", "pipe", "ipc"],
       });
       let ready = false;
       server.stdout.on("data", (d) => {
@@ -39,7 +40,7 @@ test(
     const stop = async () => {
       if (server && server.exitCode === null) {
         const done = new Promise((r) => server.once("exit", r));
-        server.kill("SIGTERM");
+        server.send("shutdown");
         await done;
       }
       server = null;
@@ -150,5 +151,4 @@ test(
       await fs.rm(temp, { recursive: true, force: true });
     }
   },
-  { timeout: 30000 },
 );

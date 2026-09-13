@@ -465,3 +465,8 @@ server.on("error", async () => {
 });
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
+
+// Parent-process control is available only when launched with a Node IPC channel.
+process.on("message", (message) => {
+  if (message === "shutdown") void stop();
+});

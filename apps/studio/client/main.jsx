@@ -35,6 +35,14 @@ function App() {
     [playing, setPlaying] = useState(false),
     [playIndex, setPlayIndex] = useState(0),
     [time, setTime] = useState(0);
+  const modalRef = useRef(null);
+  useEffect(() => {
+    if (newOpen && modalRef.current && !modalRef.current.open) {
+      const previous = document.activeElement;
+      modalRef.current.showModal();
+      return () => previous?.focus();
+    }
+  }, [newOpen]);
   const video = useRef(null),
     music = useRef(null),
     dirtyRef = useRef(false),
@@ -860,104 +868,108 @@ function App() {
         </aside>
       </div>
       {newOpen && (
-        <div className="modal-backdrop">
-          <section
-            className="modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="new-title"
-          >
-            <div className="modal-header">
-              <h2 id="new-title">Start a new story</h2>
-              <button
-                aria-label="Close new project"
-                onClick={() => setNewOpen(false)}
-              >
-                ×
-              </button>
-            </div>
-            <p>Plan your shots, then bring them to life.</p>
-            <form onSubmit={create}>
-              <label>
-                Project name
-                <input
-                  name="name"
-                  required
-                  maxLength="120"
-                  placeholder="Lighthouse at dusk"
-                />
-              </label>
-              <label>
-                Creative brief
-                <textarea
-                  name="intent"
-                  required
-                  minLength="3"
-                  maxLength="4000"
-                  rows="4"
-                  placeholder="A lighthouse beam sweeps over the ocean as a storm approaches…"
-                />
-              </label>
-              <div className="fields">
-                <label>
-                  Target length (seconds)
-                  <input
-                    name="duration"
-                    type="number"
-                    defaultValue="15"
-                    min="5"
-                    max="120"
-                  />
-                </label>
-                <label>
-                  Planning provider
-                  <select
-                    name="provider"
-                    defaultValue={
-                      config.planning ? "openai-byok" : "local-mock"
-                    }
-                  >
-                    <option value="openai-byok" disabled={!config.planning}>
-                      OpenAI
-                    </option>
-                    <option value="local-mock">Offline structural draft</option>
-                  </select>
-                </label>
-              </div>
-              <p className="hint">
-                OpenAI receives your brief. Offline mode creates a structural
-                draft without AI generation.
-              </p>
-              <button className="primary full" disabled={!!busy} type="submit">
-                {busy || "Create scene plan →"}
-              </button>
-            </form>
-            <label className="file-button import-plan">
-              Import an existing Director plan
+        <dialog
+          ref={modalRef}
+          onCancel={() => setNewOpen(false)}
+          className="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="new-title"
+        >
+          <div className="modal-header">
+            <h2 id="new-title">Start a new story</h2>
+            <button
+              aria-label="Close new project"
+              onClick={() => setNewOpen(false)}
+            >
+              ×
+            </button>
+          </div>
+          <p>Plan your shots, then bring them to life.</p>
+          {error && (
+            <p role="alert" className="modal-error">
+              {error}
+            </p>
+          )}
+          <form onSubmit={create}>
+            <label>
+              Project name
               <input
-                type="file"
-                accept=".json"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (!f) return;
-                  work("Importing plan", async () => {
-                    if (f.size > 10 * 1024 * 1024)
-                      throw new Error("Plan exceeds 10 MB");
-                    load(
-                      await api(
-                        "/import-director",
-                        "POST",
-                        JSON.parse(await f.text()),
-                      ),
-                    );
-                    setProjects(await api("/projects"));
-                    setNewOpen(false);
-                  });
-                }}
+                name="name"
+                autoFocus
+                required
+                maxLength="120"
+                placeholder="Lighthouse at dusk"
               />
             </label>
-          </section>
-        </div>
+            <label>
+              Creative brief
+              <textarea
+                name="intent"
+                required
+                minLength="3"
+                maxLength="4000"
+                rows="4"
+                placeholder="A lighthouse beam sweeps over the ocean as a storm approaches…"
+              />
+            </label>
+            <div className="fields">
+              <label>
+                Target length (seconds)
+                <input
+                  name="duration"
+                  type="number"
+                  defaultValue="15"
+                  min="5"
+                  max="120"
+                />
+              </label>
+              <label>
+                Planning provider
+                <select
+                  name="provider"
+                  defaultValue={config.planning ? "openai-byok" : "local-mock"}
+                >
+                  <option value="openai-byok" disabled={!config.planning}>
+                    OpenAI
+                  </option>
+                  <option value="local-mock">Offline structural draft</option>
+                </select>
+              </label>
+            </div>
+            <p className="hint">
+              OpenAI receives your brief. Offline mode creates a structural
+              draft without AI generation.
+            </p>
+            <button className="primary full" disabled={!!busy} type="submit">
+              {busy || "Create scene plan →"}
+            </button>
+          </form>
+          <label className="file-button import-plan">
+            Import an existing Director plan
+            <input
+              type="file"
+              accept=".json"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (!f) return;
+                work("Importing plan", async () => {
+                  if (f.size > 10 * 1024 * 1024)
+                    throw new Error("Plan exceeds 10 MB");
+                  load(
+                    await api(
+                      "/import-director",
+                      "POST",
+                      JSON.parse(await f.text()),
+                    ),
+                  );
+                  setProjects(await api("/projects"));
+                  setNewOpen(false);
+                });
+              }}
+            />
+          </label>
+        </dialog>
       )}
     </div>
   );
