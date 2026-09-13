@@ -1,3 +1,9 @@
+# SceneMeld full-workflow development
+
+The runnable Studio application is in [apps/studio](apps/studio/README.md). It connects Director planning to media generation, timeline editing and local MP4 export. See [release gates](apps/studio/VERIFICATION.md) for verified behavior and remaining work. The original scaffold documentation follows below.
+
+---
+
 <table width="100%">
   <tr>
     <td align="left" width="120">
